@@ -1,0 +1,170 @@
+---
+// Écran d'intro : séquence de démarrage courte, passable.
+---
+
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    var skip = false;
+    try {
+      skip =
+        sessionStorage.getItem('intro-seen') === '1' ||
+        /^#(parcours|projets|contact)$/.test(location.hash) ||
+        matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+    if (!skip) root.classList.add('intro-active');
+  })();
+</script>
+
+<div class="intro" id="intro">
+  <div class="intro-inner">
+    <p class="intro-line"><span data-intro-step>Initialisation</span></p>
+    <p class="intro-count"><span data-intro-count>000</span><i>%</i></p>
+    <div class="intro-bar" aria-hidden="true"><span data-intro-bar></span></div>
+    <button class="intro-skip" type="button" data-intro-skip>Passer <kbd>Esc</kbd></button>
+  </div>
+</div>
+
+<style>
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: opacity 0.9s ease;
+  }
+
+  :global(html.intro-active) .intro {
+    display: flex;
+  }
+
+  .intro.is-leaving {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .intro-inner {
+    width: min(22rem, calc(100vw - 4rem));
+  }
+
+  .intro-line {
+    color: var(--muted);
+    margin-bottom: 1.4rem;
+    min-height: 1.2em;
+  }
+
+  .intro-count {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(3.4rem, 9vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 1.4rem;
+  }
+  .intro-count i {
+    font-style: normal;
+    font-size: 0.35em;
+    color: var(--muted);
+    margin-left: 0.3em;
+  }
+
+  .intro-bar {
+    height: 1px;
+    background: var(--line);
+    margin-bottom: 2.2rem;
+  }
+  .intro-bar span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .intro-skip {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .intro-skip:hover,
+  .intro-skip:focus-visible {
+    color: var(--accent);
+  }
+  .intro-skip kbd {
+    font: inherit;
+    margin-left: 0.5em;
+    padding: 0.05em 0.5em;
+    border: 1px solid var(--line);
+    letter-spacing: 0.08em;
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const intro = document.getElementById('intro');
+
+  if (intro && root.classList.contains('intro-active')) {
+    const count = intro.querySelector<HTMLElement>('[data-intro-count]');
+    const bar = intro.querySelector<HTMLElement>('[data-intro-bar]');
+    const step = intro.querySelector<HTMLElement>('[data-intro-step]');
+    const skip = intro.querySelector<HTMLElement>('[data-intro-skip]');
+
+    const steps = ['Initialisation', 'Champ stellaire', 'Alignement des astres', 'Prêt'];
+    const DURATION = 2300;
+    const start = performance.now();
+    let raf = 0;
+    let done = false;
+
+    function finish() {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      try {
+        sessionStorage.setItem('intro-seen', '1');
+      } catch {}
+      window.removeEventListener('keydown', onKey);
+      intro!.classList.add('is-leaving');
+      root.classList.remove('intro-active');
+      window.dispatchEvent(new Event('introdone'));
+      setTimeout(() => intro!.remove(), 1000);
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        finish();
+      }
+    }
+
+    function tick(now: number) {
+      const t = Math.min((now - start) / DURATION, 1);
+      const eased = 1 - Math.pow(1 - t, 2.2);
+      if (count) count.textContent = String(Math.round(eased * 100)).padStart(3, '0');
+      if (bar) bar.style.transform = `scaleX(${eased})`;
+      if (step) step.textContent = steps[Math.min(Math.floor(t * steps.length), steps.length - 1)];
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setTimeout(finish, 250);
+    }
+
+    skip?.addEventListener('click', finish);
+    window.addEventListener('keydown', onKey);
+    skip?.focus({ preventScroll: true });
+    raf = requestAnimationFrame(tick);
+  }
+</script>

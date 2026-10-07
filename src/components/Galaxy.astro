@@ -1,0 +1,444 @@
+---
+// Galaxie interactive plein écran (three.js) + astres de navigation.
+const nodes = [
+  { id: 'parcours', index: '01', label: 'Parcours' },
+  { id: 'projets', index: '02', label: 'Projets' },
+  { id: 'contact', index: '03', label: 'Contact' },
+];
+---
+
+<div class="galaxy" id="galaxy" aria-hidden="true"></div>
+
+<svg class="node-links" aria-hidden="true">
+  <polyline points="" />
+</svg>
+
+{
+  nodes.map((node) => (
+    <a class="node" href={`#${node.id}`} data-node={node.id}>
+      <span class="node-dot"></span>
+      <span class="node-label">
+        <i>{node.index}</i>
+        {node.label}
+      </span>
+    </a>
+  ))
+}
+
+<style>
+  .galaxy {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    animation: galaxy-in 2.4s ease 0.2s forwards;
+  }
+
+  :global(html.no-webgl) .galaxy {
+    background: radial-gradient(ellipse at 50% 55%, #1b2a40 0%, #080b12 45%, var(--bg) 75%);
+  }
+
+  .galaxy :global(canvas) {
+    display: block;
+  }
+
+  .node-links {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    animation: galaxy-in 1.6s ease 2s forwards;
+  }
+
+  .node-links polyline {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+    opacity: 0.35;
+  }
+
+  .node {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem;
+    opacity: 0;
+    animation: galaxy-in 1.2s ease 2.2s forwards;
+    will-change: transform;
+  }
+
+  .node-dot {
+    position: relative;
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 14px 2px rgba(159, 196, 240, 0.65);
+  }
+
+  .node-dot::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: inset 0.3s ease, opacity 0.3s ease;
+  }
+
+  .node-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text);
+    white-space: nowrap;
+    transition: color 0.25s ease, transform 0.3s ease, opacity 0.6s ease;
+  }
+
+  .node-dot {
+    transition: opacity 0.6s ease;
+  }
+
+  :global(html[data-view]) .node:not(.is-current) .node-label,
+  :global(html[data-view]) .node:not(.is-current) .node-dot {
+    opacity: 0.22;
+  }
+
+  :global(html[data-view]) .node-links {
+    opacity: 0.35 !important;
+  }
+
+  .node-label i {
+    font-style: normal;
+    color: var(--muted);
+    margin-right: 0.7em;
+  }
+
+  .node.flip {
+    flex-direction: row-reverse;
+  }
+
+  .node:hover .node-dot::after,
+  .node:focus-visible .node-dot::after,
+  .node.is-active .node-dot::after,
+  .node.is-current .node-dot::after {
+    inset: -14px;
+    opacity: 0.95;
+  }
+
+  .node:hover .node-label,
+  .node:focus-visible .node-label,
+  .node.is-active .node-label,
+  .node.is-current .node-label {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  .node.flip:hover .node-label,
+  .node.flip:focus-visible .node-label,
+  .node.flip.is-active .node-label {
+    transform: translateX(-3px);
+  }
+
+  .node:focus-visible {
+    outline: none;
+  }
+
+  @keyframes galaxy-in {
+    to {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import * as THREE from 'three';
+
+  const host = document.getElementById('galaxy');
+  const nodeEls = Array.from(document.querySelectorAll<HTMLElement>('.node'));
+  const hoverEls = Array.from(document.querySelectorAll<HTMLElement>('[data-node]'));
+  const polyline = document.querySelector<SVGPolylineElement>('.node-links polyline');
+  const readX = document.querySelector<HTMLElement>('[data-readout-x]');
+  const readY = document.querySelector<HTMLElement>('[data-readout-y]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Position des astres dans le plan de la galaxie (rayon, angle en degrés).
+  const NODE_POLAR: Record<string, [number, number]> = {
+    parcours: [4.6, 205],
+    projets: [6.6, 322],
+    contact: [3.8, 68],
+  };
+
+  // Survol synchronisé entre le menu du haut et les astres.
+  hoverEls.forEach((el) => {
+    const id = el.dataset.node;
+    const on = () =>
+      nodeEls.forEach((n) => n.classList.toggle('is-active', n.dataset.node === id));
+    const off = () => nodeEls.forEach((n) => n.classList.remove('is-active'));
+    el.addEventListener('pointerenter', on);
+    el.addEventListener('pointerleave', off);
+    el.addEventListener('focus', on);
+    el.addEventListener('blur', off);
+  });
+
+  function init(container: HTMLElement) {
+    const RADIUS = 9;
+    const COUNT = 14000;
+    const ARMS = 3;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x030409, 1);
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 200);
+
+    // --- Particules : bras spiraux, plus denses au centre ---
+    const positions = new Float32Array(COUNT * 3);
+    const seeds = new Float32Array(COUNT);
+    const sizes = new Float32Array(COUNT);
+    for (let i = 0; i < COUNT; i++) {
+      const r = Math.pow(Math.random(), 1.7) * RADIUS;
+      const branch = ((i % ARMS) / ARMS) * Math.PI * 2;
+      const spin = r * 0.75;
+      const scatter = (Math.pow(Math.random(), 2.4) * (Math.random() < 0.5 ? 1 : -1) * (0.25 + r * 0.09));
+      const angle = branch + spin;
+      positions[i * 3] = Math.cos(angle) * r + scatter * (Math.random() - 0.5) * 2;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 0.35 * (1.2 - r / RADIUS);
+      positions[i * 3 + 2] = Math.sin(angle) * r + scatter * (Math.random() - 0.5) * 2;
+      seeds[i] = Math.random();
+      sizes[i] = 0.4 + Math.pow(Math.random(), 3) * 1.6;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1));
+    geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+
+    const uniforms = {
+      uTime: { value: 0 },
+      uIntro: { value: reduced ? 1 : 0 },
+      uPixelRatio: { value: renderer.getPixelRatio() },
+      uSize: { value: 46 },
+      uMouse: { value: new THREE.Vector3(999, 0, 999) },
+      uStrength: { value: 0 },
+      uRadius: { value: RADIUS },
+    };
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */ `
+        uniform float uTime, uIntro, uPixelRatio, uSize, uStrength, uRadius;
+        uniform vec3 uMouse;
+        attribute float aSeed, aSize;
+        varying vec3 vColor;
+        varying float vAlpha;
+
+        void main() {
+          vec3 p = position;
+          float r = length(p.xz);
+          float a = atan(p.z, p.x) + uTime * 0.11 / (0.7 + r * 0.32);
+          float rr = r * mix(0.15, 1.0, uIntro);
+          p.x = cos(a) * rr;
+          p.z = sin(a) * rr;
+
+          vec2 d = p.xz - uMouse.xz;
+          float dist = length(d);
+          float f = exp(-dist * dist * 0.45) * uStrength;
+          p.xz += normalize(d + vec2(1e-4)) * f * 1.2;
+          p.y += f * 0.7;
+
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = aSize * uSize * uPixelRatio / -mv.z * (1.0 + f * 0.8);
+
+          float t = clamp(r / uRadius, 0.0, 1.0);
+          vec3 core = vec3(0.93, 0.96, 1.0);
+          vec3 mid = vec3(0.56, 0.70, 0.88);
+          vec3 edge = vec3(0.22, 0.34, 0.52);
+          vColor = mix(mix(core, mid, smoothstep(0.0, 0.3, t)), edge, smoothstep(0.3, 1.0, t));
+          vColor = mix(vColor, vec3(1.0), f * 0.5);
+          float twinkle = 0.65 + 0.35 * sin(uTime * 1.4 + aSeed * 60.0);
+          vAlpha = twinkle * (1.0 - t * 0.45) * uIntro;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          float s = smoothstep(0.5, 0.0, d);
+          gl_FragColor = vec4(vColor, s * s * vAlpha * 0.9);
+        }
+      `,
+    });
+
+    const group = new THREE.Group();
+    group.rotation.x = 0.62;
+    group.rotation.z = -0.14;
+    group.add(new THREE.Points(geometry, material));
+    scene.add(group);
+
+    // --- Astres de navigation (coordonnées locales au plan de la galaxie) ---
+    const nodePoints = nodeEls.map((el) => {
+      const [r, deg] = NODE_POLAR[el.dataset.node ?? ''] ?? [5, 0];
+      const rad = (deg * Math.PI) / 180;
+      return { el, local: new THREE.Vector3(Math.cos(rad) * r, 0, Math.sin(rad) * r) };
+    });
+
+    // --- Vol de caméra vers l'astre actif ---
+    let focusId: string | null = null;
+    let focus = 0;
+    let focusTarget = 0;
+    const nodeWorld = new THREE.Vector3();
+    const camBase = new THREE.Vector3();
+    const camFocus = new THREE.Vector3();
+    const lookFocus = new THREE.Vector3();
+    let hasFocus = false;
+    let camDist = 14;
+    const ease = (v: number) => v * v * (3 - 2 * v);
+
+    window.addEventListener('viewchange', (e) => {
+      focusId = (e as CustomEvent<string | null>).detail;
+      focusTarget = focusId ? 1 : 0;
+      if (reduced) {
+        focus = focusTarget;
+        draw();
+      }
+    });
+
+    // --- Pointeur ---
+    const pointer = new THREE.Vector2(0, 0);
+    const smooth = new THREE.Vector2(0, 0);
+    let inside = false;
+    window.addEventListener('pointermove', (e) => {
+      pointer.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+      inside = true;
+      if (readX) readX.textContent = pointer.x.toFixed(2);
+      if (readY) readY.textContent = pointer.y.toFixed(2);
+      if (reduced) draw();
+    });
+    document.documentElement.addEventListener('pointerleave', () => (inside = false));
+
+    const raycaster = new THREE.Raycaster();
+    const plane = new THREE.Plane();
+    const hit = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+    const tmp = new THREE.Vector3();
+    const mouseLocal = new THREE.Vector3(999, 0, 999);
+
+    function resize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+      const dist = Math.max(14, 21 / (2 * Math.tan(halfFov) * camera.aspect));
+      camDist = dist;
+      camera.updateProjectionMatrix();
+      if (reduced) draw();
+    }
+
+    function draw(t = 0) {
+      uniforms.uTime.value = reduced ? 0 : t;
+      uniforms.uIntro.value = reduced ? 1 : 1 - Math.pow(1 - Math.min(t / 3.2, 1), 3);
+
+      group.updateMatrixWorld();
+
+      if (!reduced) focus += (focusTarget - focus) * 0.045;
+      if (Math.abs(focusTarget - focus) < 0.001) focus = focusTarget;
+      const e = ease(focus);
+
+      smooth.lerp(pointer, 0.06);
+      camBase.set(smooth.x * 1.1, 3.2 + smooth.y * 0.7, camDist);
+
+      const active = nodePoints.find((n) => n.el.dataset.node === focusId);
+      if (active) {
+        nodeWorld.copy(active.local).applyMatrix4(group.matrixWorld);
+        camFocus.set(
+          nodeWorld.x + smooth.x * 0.5,
+          nodeWorld.y + 2.6 + smooth.y * 0.3,
+          nodeWorld.z + 7.5
+        );
+        lookFocus.copy(nodeWorld);
+        hasFocus = true;
+      }
+      if (hasFocus && e > 0) {
+        camera.position.lerpVectors(camBase, camFocus, e);
+        tmp.set(0, 0, 0).lerp(lookFocus, e);
+        camera.lookAt(tmp);
+      } else {
+        camera.position.copy(camBase);
+        camera.lookAt(0, 0, 0);
+      }
+
+      // Décale la scène pour que l'astre reste à côté du panneau.
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const narrow = w <= 800;
+      const shiftX = narrow ? 0 : w * 0.17 * e;
+      const shiftY = narrow ? h * 0.2 * e : 0;
+      if (e > 0) camera.setViewOffset(w, h, shiftX, shiftY, w, h);
+      else camera.clearViewOffset();
+
+      // Le curseur perturbe le champ : on le projette sur le plan de la galaxie.
+      normal.set(0, 1, 0).applyQuaternion(group.quaternion);
+      plane.setFromNormalAndCoplanarPoint(normal, group.position);
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(plane, hit)) {
+        tmp.copy(hit);
+        group.worldToLocal(tmp);
+        mouseLocal.lerp(tmp, 0.18);
+        uniforms.uMouse.value.copy(mouseLocal);
+      }
+      uniforms.uStrength.value += ((inside ? 1 : 0) - uniforms.uStrength.value) * 0.05;
+
+      // Projection des astres vers l'écran.
+      const pts: string[] = [];
+      for (const n of nodePoints) {
+        tmp.copy(n.local).applyMatrix4(group.matrixWorld).project(camera);
+        const x = (tmp.x * 0.5 + 0.5) * w;
+        const y = (-tmp.y * 0.5 + 0.5) * h;
+        n.el.classList.toggle('flip', x > w * 0.62);
+        n.el.style.transform = `translate(${x}px, ${y}px) translate(-0.9rem, -50%)`;
+        pts.push(`${x},${y}`);
+      }
+      polyline?.setAttribute('points', pts.join(' '));
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    if (reduced) {
+      draw();
+    } else {
+      const clock = new THREE.Clock();
+      let startAt = document.documentElement.classList.contains('intro-active') ? Infinity : 0;
+      window.addEventListener('introdone', () => (startAt = clock.getElapsedTime()), { once: true });
+      renderer.setAnimationLoop(() => draw(Math.max(0, clock.getElapsedTime() - startAt)));
+    }
+  }
+
+  if (host) {
+    try {
+      init(host);
+    } catch {
+      document.documentElement.classList.add('no-webgl');
+    }
+  }
+</script>

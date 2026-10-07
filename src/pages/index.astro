@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Intro from '../components/Intro.astro';
+import Galaxy from '../components/Galaxy.astro';
+import Hud from '../components/Hud.astro';
+import Panels from '../components/Panels.astro';
+import site from '../data/site.json';
+---
+
+<Layout title={`${site.name} — Portfolio`} description={site.bio}>
+  <main>
+    <Intro />
+    <Galaxy />
+    <Hud />
+    <Panels />
+  </main>
+</Layout>

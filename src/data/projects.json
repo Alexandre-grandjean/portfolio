@@ -1,0 +1,11 @@
+[
+  {
+    "title": "Nom du projet",
+    "description": "Remplace cette entrée par un vrai projet : une phrase qui décrit ce qu'il fait.",
+    "url": "https://github.com/ton-compte/ton-projet",
+    "demo": "",
+    "image": "",
+    "technologies": ["Astro", "TypeScript"],
+    "featured": true
+  }
+]

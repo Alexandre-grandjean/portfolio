@@ -1,0 +1,80 @@
+---
+import Layout from '../layouts/Layout.astro';
+import site from '../data/site.json';
+---
+
+<Layout title={`Signal perdu — ${site.name}`} description="Cette page n'existe pas.">
+  <main class="lost">
+    <span class="corner tl" aria-hidden="true"></span>
+    <span class="corner tr" aria-hidden="true"></span>
+    <span class="corner bl" aria-hidden="true"></span>
+    <span class="corner br" aria-hidden="true"></span>
+
+    <p class="code">Erreur 404</p>
+    <h1>Signal perdu.</h1>
+    <p class="text">Cette région de l'espace-temps est vide.</p>
+    <a class="back" href={`${import.meta.env.BASE_URL}`}>Retourner à la galaxie <span aria-hidden="true">↗</span></a>
+  </main>
+</Layout>
+
+<style>
+  .lost {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 calc(var(--frame) + 1.6rem);
+    background: radial-gradient(ellipse at 70% 30%, #0c1422 0%, var(--bg) 60%);
+  }
+
+  .code,
+  .back {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .code {
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(3rem, 9vw, 7rem);
+    line-height: 1;
+    margin-bottom: 1.2rem;
+  }
+
+  .text {
+    color: var(--muted);
+    margin-bottom: 2.4rem;
+  }
+
+  .back {
+    align-self: flex-start;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .back:hover,
+  .back:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 0 solid var(--line);
+  }
+  .tl { top: var(--frame); left: var(--frame); border-top-width: 1px; border-left-width: 1px; }
+  .tr { top: var(--frame); right: var(--frame); border-top-width: 1px; border-right-width: 1px; }
+  .bl { bottom: var(--frame); left: var(--frame); border-bottom-width: 1px; border-left-width: 1px; }
+  .br { bottom: var(--frame); right: var(--frame); border-bottom-width: 1px; border-right-width: 1px; }
+</style>

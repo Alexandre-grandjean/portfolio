@@ -1,0 +1,641 @@
+---
+// Panneaux HUD (Parcours / Projets / Contact) + contrôleur de navigation.
+import site from '../data/site.json';
+import projects from '../data/projects.json';
+import parcours from '../data/parcours.json';
+
+const orderedProjects = [...projects].sort((a, b) => Number(b.featured) - Number(a.featured));
+
+const contacts: { label: string; value: string; href: string; external: boolean }[] = [];
+if (site.email) {
+  contacts.push({ label: 'Email', value: site.email, href: `mailto:${site.email}`, external: false });
+}
+if (site.github) {
+  contacts.push({
+    label: 'GitHub',
+    value: site.github.replace(/^https?:\/\//, ''),
+    href: site.github,
+    external: true,
+  });
+}
+if (site.linkedin) {
+  contacts.push({
+    label: 'LinkedIn',
+    value: site.linkedin.replace(/^https?:\/\//, ''),
+    href: site.linkedin,
+    external: true,
+  });
+}
+---
+
+<section class="panel" id="parcours" data-panel="parcours" aria-labelledby="parcours-title" tabindex="-1" inert>
+  <header class="panel-head">
+    <p class="panel-index"><span>01</span>Parcours</p>
+    <button class="panel-close" type="button" data-close aria-label="Fermer le panneau">
+      Fermer <kbd>Esc</kbd>
+    </button>
+  </header>
+  <div class="panel-body">
+    <h2 class="panel-title" id="parcours-title" data-r>Le chemin parcouru</h2>
+
+    <div class="about" data-r style="--i: 1">
+      <p class="label">À propos</p>
+      <p class="lede">{site.bio}</p>
+    </div>
+
+    <ol class="trace">
+      {
+        parcours.map((etape, i) => (
+          <li data-r style={`--i: ${i + 2}`}>
+            <span class="pt" aria-hidden="true" />
+            <span class="year">{etape.year}</span>
+            <h3>{etape.title}</h3>
+            <p>{etape.description}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="projets" data-panel="projets" aria-labelledby="projets-title" tabindex="-1" inert>
+  <header class="panel-head">
+    <p class="panel-index"><span>02</span>Projets</p>
+    <button class="panel-close" type="button" data-close aria-label="Fermer le panneau">
+      Fermer <kbd>Esc</kbd>
+    </button>
+  </header>
+  <div class="panel-body">
+    <h2 class="panel-title" id="projets-title" data-r>Ce que je construis</h2>
+
+    <ul class="orbits">
+      {
+        orderedProjects.map((project, i) => (
+          <li data-r style={`--i: ${i + 1}`}>
+            <div class="orbit" aria-hidden="true">
+              <svg viewBox="0 0 64 64">
+                <ellipse class="ring" cx="32" cy="32" rx="26" ry="10" />
+                <circle class="core" cx="32" cy="32" r="3.5" />
+              </svg>
+              <span class="sat" />
+            </div>
+            <div class="orbit-body">
+              {project.featured && <p class="label">En avant</p>}
+              <h3>{project.title}</h3>
+              {project.image && (
+                <img src={project.image} alt={`Aperçu du projet ${project.title}`} loading="lazy" />
+              )}
+              <p class="desc">{project.description}</p>
+              <ul class="tags">
+                {project.technologies.map((tech) => <li>{tech}</li>)}
+              </ul>
+              <div class="actions">
+                {project.url && (
+                  <a href={project.url} target="_blank" rel="noopener noreferrer">
+                    Code source <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+                {project.demo && (
+                  <a href={project.demo} target="_blank" rel="noopener noreferrer">
+                    Voir la démo <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="panel" id="contact" data-panel="contact" aria-labelledby="contact-title" tabindex="-1" inert>
+  <header class="panel-head">
+    <p class="panel-index"><span>03</span>Contact</p>
+    <button class="panel-close" type="button" data-close aria-label="Fermer le panneau">
+      Fermer <kbd>Esc</kbd>
+    </button>
+  </header>
+  <div class="panel-body">
+    <h2 class="panel-title big" id="contact-title" data-r>Construisons quelque chose.</h2>
+
+    <ul class="links">
+      {
+        contacts.map((c, i) => (
+          <li data-r style={`--i: ${i + 1}`}>
+            <a
+              class="row"
+              href={c.href}
+              target={c.external ? '_blank' : undefined}
+              rel={c.external ? 'noopener noreferrer' : undefined}
+            >
+              <span class="k">{c.label}</span>
+              <span class="v">{c.value}</span>
+              <span class="arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* ---------- Coque du panneau ---------- */
+  .panel {
+    position: fixed;
+    top: calc(var(--frame) + 3.6rem);
+    right: calc(var(--frame) + 1.6rem);
+    bottom: calc(var(--frame) + 1.6rem);
+    width: min(34rem, calc(100vw - 2 * (var(--frame) + 1.6rem)));
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    background: rgba(3, 4, 9, 0.74);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(28px);
+    transition:
+      opacity 0.35s ease,
+      transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+      visibility 0s linear 0.5s;
+  }
+
+  .panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.6s ease 0.45s,
+      transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s,
+      visibility 0s;
+  }
+
+  .panel:focus {
+    outline: none;
+  }
+
+  .panel::before,
+  .panel::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 0 solid var(--accent);
+    pointer-events: none;
+  }
+  .panel::before {
+    top: -1px;
+    left: -1px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+  }
+  .panel::after {
+    right: -1px;
+    bottom: -1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .panel-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.4rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .panel-index {
+    color: var(--text);
+  }
+  .panel-index span {
+    color: var(--muted);
+    margin-right: 0.8em;
+  }
+
+  .panel-close {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .panel-close:hover,
+  .panel-close:focus-visible {
+    color: var(--accent);
+  }
+  .panel-close kbd {
+    font: inherit;
+    margin-left: 0.5em;
+    padding: 0.05em 0.5em;
+    border: 1px solid var(--line);
+    letter-spacing: 0.08em;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1.8rem 1.4rem 2.4rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .panel-title {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    line-height: 1.05;
+    margin-bottom: 1.8rem;
+  }
+  .panel-title.big {
+    font-size: clamp(2.4rem, 4.4vw, 3.6rem);
+    margin-bottom: 2.4rem;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+
+  /* ---------- Révélation échelonnée ---------- */
+  [data-r] {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  .panel.is-open [data-r] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.7s ease calc(0.6s + var(--i, 0) * 0.09s),
+      transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) calc(0.6s + var(--i, 0) * 0.09s);
+  }
+
+  /* ---------- Parcours : trajectoire de points reliés ---------- */
+  .about {
+    margin-bottom: 2.4rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 46ch;
+  }
+
+  .trace {
+    list-style: none;
+  }
+  .trace li {
+    position: relative;
+    padding: 0 0 2.2rem 2rem;
+  }
+  .trace li:last-child {
+    padding-bottom: 0;
+  }
+
+  .pt {
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: 0 0 12px 1px rgba(159, 196, 240, 0.55);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .trace li:hover .pt {
+    transform: scale(1.5);
+    box-shadow: 0 0 18px 3px rgba(159, 196, 240, 0.8);
+  }
+
+  .trace li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: calc(0.5rem + 3.5px);
+    height: 100%;
+    width: 1px;
+    background: linear-gradient(to bottom, rgba(159, 196, 240, 0.55), rgba(159, 196, 240, 0.12));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.2s ease;
+  }
+  .panel.is-open .trace li:not(:last-child)::after {
+    transform: scaleY(1);
+    transition: transform 0.9s ease calc(0.8s + var(--i, 0) * 0.22s);
+  }
+
+  .year {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .trace h3,
+  .orbit-body h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.55rem;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+  }
+  .trace p {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  /* ---------- Projets : corps en orbite ---------- */
+  .orbits {
+    list-style: none;
+  }
+  .orbits > li {
+    display: flex;
+    gap: 1.2rem;
+    padding: 1.6rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .orbits > li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .orbit {
+    position: relative;
+    flex: none;
+    width: 64px;
+    height: 64px;
+    transform: rotate(-24deg);
+  }
+  .orbit svg {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+  }
+  .ring {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+    transition: stroke 0.3s ease;
+  }
+  .core {
+    fill: var(--text);
+    filter: drop-shadow(0 0 5px rgba(159, 196, 240, 0.8));
+  }
+  .orbits > li:hover .ring {
+    stroke: var(--accent);
+  }
+  .sat {
+    display: none;
+  }
+  @supports (offset-path: path('M 0 0')) {
+    .sat {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      offset-path: path('M 6 32 a 26 10 0 1 0 52 0 a 26 10 0 1 0 -52 0');
+      offset-distance: 0%;
+      animation: orbit calc(5s + var(--i, 1) * 1.8s) linear infinite;
+    }
+  }
+  @keyframes orbit {
+    to {
+      offset-distance: 100%;
+    }
+  }
+
+  .orbit-body {
+    min-width: 0;
+  }
+  .orbit-body img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    margin: 0.7rem 0;
+  }
+  .desc {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 1rem;
+  }
+
+  .tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+  }
+  .tags li {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 0.15rem 0.55rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+  }
+  .actions a {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .actions a:hover,
+  .actions a:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ---------- Contact ---------- */
+  .links {
+    list-style: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1.15rem 0.6rem;
+    margin-inline: -0.6rem;
+    border-top: 1px solid var(--line);
+    transition: background 0.25s ease;
+  }
+  .row .k {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .row .v {
+    overflow-wrap: anywhere;
+    transition: color 0.2s ease;
+  }
+  .row .arrow {
+    font-family: var(--font-mono);
+    color: var(--muted);
+    transition: transform 0.25s ease, color 0.2s ease;
+  }
+  .row:hover,
+  .row:focus-visible {
+    background: rgba(159, 196, 240, 0.05);
+  }
+  .row:hover .v,
+  .row:focus-visible .v,
+  .row:hover .arrow,
+  .row:focus-visible .arrow {
+    color: var(--accent);
+  }
+  .row:hover .arrow,
+  .row:focus-visible .arrow {
+    transform: translate(3px, -3px);
+  }
+
+  /* ---------- Mobile : panneau en bas ---------- */
+  @media (max-width: 800px) {
+    .panel {
+      top: 42vh;
+      left: calc(var(--frame) + 0.4rem);
+      right: calc(var(--frame) + 0.4rem);
+      bottom: var(--frame);
+      width: auto;
+      transform: translateY(28px);
+    }
+    .panel-body {
+      padding: 1.4rem 1.1rem 2rem;
+    }
+    .row {
+      grid-template-columns: 4.5rem 1fr auto;
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+  const ids = panels.map((p) => p.dataset.panel as string);
+
+  let current: string | null = null;
+  let lastTrigger: HTMLElement | null = null;
+
+  function apply(id: string | null, focusPanel = false) {
+    if (id === current) return;
+    current = id;
+
+    if (id) root.dataset.view = id;
+    else delete root.dataset.view;
+
+    panels.forEach((panel) => {
+      const open = panel.dataset.panel === id;
+      panel.classList.toggle('is-open', open);
+      panel.toggleAttribute('inert', !open);
+      if (open && focusPanel) panel.focus({ preventScroll: true });
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-node]').forEach((el) => {
+      const isCurrent = el.dataset.node === id;
+      el.classList.toggle('is-current', isCurrent);
+      if (isCurrent) el.setAttribute('aria-current', 'true');
+      else el.removeAttribute('aria-current');
+    });
+
+    panels.forEach((panel) => {
+      if (panel.dataset.panel === id) {
+        const body = panel.querySelector<HTMLElement>('.panel-body');
+        if (body) body.scrollTop = 0;
+      }
+    });
+
+    window.dispatchEvent(new CustomEvent('viewchange', { detail: id }));
+  }
+
+  function open(id: string, trigger: HTMLElement | null) {
+    lastTrigger = trigger;
+    if (location.hash !== `#${id}`) history.pushState(null, '', `#${id}`);
+    apply(id, trigger !== null);
+  }
+
+  function close(restoreFocus: boolean) {
+    if (!current) return;
+    history.pushState(null, '', location.pathname + location.search);
+    apply(null);
+    if (restoreFocus) lastTrigger?.focus({ preventScroll: true });
+  }
+
+  function sync() {
+    const id = location.hash.slice(1);
+    apply(ids.includes(id) ? id : null);
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const link = target.closest<HTMLElement>('a[data-node]');
+    if (link) {
+      event.preventDefault();
+      const viaKeyboard = event.detail === 0;
+      open(link.dataset.node as string, viaKeyboard ? link : null);
+      return;
+    }
+    if (target.closest('[data-close]')) {
+      close(event.detail === 0);
+      return;
+    }
+    if (current && target.closest('#galaxy')) close(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === 'Escape') {
+      close(true);
+      return;
+    }
+    const id = ids[Number(event.key) - 1];
+    if (!id) return;
+    if (id === current) close(true);
+    else open(id, document.activeElement as HTMLElement | null);
+  });
+
+  window.addEventListener('hashchange', sync);
+  window.addEventListener('popstate', sync);
+  sync();
+</script>
