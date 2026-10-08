@@ -1,11 +1,20 @@
 [
   {
-    "title": "Nom du projet",
-    "description": "Remplace cette entrée par un vrai projet : une phrase qui décrit ce qu'il fait.",
-    "url": "https://github.com/ton-compte/ton-projet",
+    "title": "Cagibi",
+    "description": "Premier projet de développement web destiné à être présenté pour mon dossier de candidature à la web@cadémie by Epitech.",
+    "url": "",
     "demo": "",
     "image": "",
-    "technologies": ["Astro", "TypeScript"],
+    "technologies": ["HTML", "CSS", "JS"],
     "featured": true
+  },
+  {
+    "title": "Portfolio — Carte du ciel",
+    "description": "Mon portfolio interactif : une galaxie de particules sert de navigation. Construit avec Astro et three.js.",
+    "url": "https://github.com/Tablooooo/portfolio",
+    "demo": "https://tablooooo.github.io/portfolio/",
+    "image": "",
+    "technologies": ["Astro", "TypeScript", "three.js"],
+    "featured": false
   }
 ]

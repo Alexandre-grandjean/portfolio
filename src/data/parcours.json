@@ -1,6 +1,27 @@
 [
-  { "year": "2024", "title": "Étape 1", "description": "Décris cette étape de ton parcours." },
-  { "year": "2025", "title": "Étape 2", "description": "Décris cette étape de ton parcours." },
-  { "year": "2026", "title": "Étape 3", "description": "Décris cette étape de ton parcours." },
-  { "year": "2027", "title": "Étape 4", "description": "Décris cette étape de ton parcours." }
+  {
+    "year": "2021",
+    "title": "Licence STAPS — Université de Reims",
+    "description": "J'intègre STAPS, attiré par le sport, et je découvre en parallèle la force athlétique, qui devient une vraie passion."
+  },
+  {
+    "year": "2023",
+    "title": "Éducateur sportif (DEUG)",
+    "description": "J'obtiens mon DEUG et ma carte d'éducateur sportif, puis je commence à coacher. Le coaching me fait réaliser que beaucoup de tâches peuvent être automatisées."
+  },
+  {
+    "year": "2025",
+    "title": "Licence STAPS, management du sport",
+    "description": "Je valide ma licence et me forme au développement web en autodidacte, pour apprendre à créer des applications de A à Z."
+  },
+  {
+    "year": "2025",
+    "title": "web@cadémie by Epitech",
+    "description": "Après un déménagement à Paris, j'intègre la web@cadémie pour me former sérieusement au web et réaliser mon premier projet."
+  },
+  {
+    "year": "2026",
+    "title": "En recherche d'alternance",
+    "description": "Je consolide mes compétences et je cherche une alternance pour apprendre en conditions réelles."
+  }
 ]

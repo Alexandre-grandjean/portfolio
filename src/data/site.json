@@ -1,8 +1,8 @@
 {
-  "name": "[Prénom Nom]",
+  "name": "Alexandre Grandjean",
   "role": "Développeur junior — en recherche d'alternance",
-  "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus vitae nisi tincidunt luctus. Integer vel sapien at magna fermentum facilisis. Vivamus lacinia odio vitae vestibulum. Praesent nonummy mi in odio. Donec eu libero sit amet quam egestas semper.",
-  "email": "ton.email@exemple.com",
-  "github": "https://github.com/ton-compte",
-  "linkedin": "https://www.linkedin.com/in/ton-compte"
+  "bio": "Étudiant en développement web à la web@cadémie by Epitech, en recherche d'alternance. Issu du sport — licence STAPS et force athlétique — j'aime comprendre le « pourquoi du comment » et je me suis tourné vers le code pour construire mes propres outils. Curieux et polyvalent, je m'intéresse au web comme à la physique, à l'espace et au hardware.",
+  "email": "alexandre.grandjean@epitech.eu",
+  "github": "https://github.com/Tablooooo",
+  "linkedin": "https://www.linkedin.com/in/alexandre-grandjean-pro"
 }
