@@ -141,6 +141,22 @@ if (site.linkedin) {
         ))
       }
     </ul>
+
+    <div class="cv" data-r style="--i: 4" aria-labelledby="cv-title">
+      <p class="label" id="cv-title">Curriculum vitae</p>
+      <p class="cv-note">Version claire, recommandée pour l’impression et la lecture.</p>
+      <div class="cv-actions">
+        <a href={`${import.meta.env.BASE_URL}documents/cv-light.pdf`} target="_blank" rel="noopener noreferrer">
+          Consulter le CV <span aria-hidden="true">↗</span>
+        </a>
+        <a href={`${import.meta.env.BASE_URL}documents/cv-light.pdf`} download="CV-Alexandre-Grandjean.pdf">
+          Télécharger le CV <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <a class="cv-dark" href={`${import.meta.env.BASE_URL}documents/cv-dark.pdf`} target="_blank" rel="noopener noreferrer">
+        Consulter la version sombre <span aria-hidden="true">↗</span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -494,6 +510,43 @@ if (site.linkedin) {
     list-style: none;
     border-bottom: 1px solid var(--line);
   }
+  .cv {
+    margin-top: 2rem;
+  }
+  .cv-note {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+  }
+  .cv-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.2rem;
+  }
+  .cv-actions a,
+  .cv-dark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .cv-actions a:hover,
+  .cv-actions a:focus-visible,
+  .cv-dark:hover,
+  .cv-dark:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .cv-dark {
+    color: var(--muted);
+    margin-top: 0.6rem;
+    font-size: 0.66rem;
+  }
   .row {
     display: grid;
     grid-template-columns: 5.5rem 1fr auto;
@@ -538,10 +591,10 @@ if (site.linkedin) {
   /* ---------- Mobile : panneau en bas ---------- */
   @media (max-width: 800px) {
     .panel {
-      top: 42vh;
+      top: 47svh;
       left: calc(var(--frame) + 0.4rem);
       right: calc(var(--frame) + 0.4rem);
-      bottom: var(--frame);
+      bottom: max(var(--frame), env(safe-area-inset-bottom));
       width: auto;
       transform: translateY(28px);
     }
@@ -550,6 +603,25 @@ if (site.linkedin) {
     }
     .row {
       grid-template-columns: 4.5rem 1fr auto;
+      min-height: 48px;
+    }
+    .panel-close {
+      min-height: 44px;
+      padding-inline: 0.35rem;
+    }
+  }
+
+  @media (max-width: 800px) and (max-height: 500px) {
+    .panel {
+      top: calc(var(--frame) + 3.2rem);
+      left: auto;
+      right: calc(var(--frame) + 0.4rem);
+      bottom: max(var(--frame), env(safe-area-inset-bottom));
+      width: min(48vw, 26rem);
+      transform: translateX(28px);
+    }
+    .panel-body {
+      padding: 1rem;
     }
   }
 </style>

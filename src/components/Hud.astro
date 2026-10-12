@@ -28,7 +28,7 @@ const links = [
       <h1 class="name">{site.name}</h1>
     </div>
 
-    <p class="hint" aria-hidden="true">Clique un astre pour voyager</p>
+    <p class="hint" aria-hidden="true">Clique sur un astre pour voyager</p>
     <p class="readout" aria-hidden="true">
       X <span data-readout-x>0.00</span> &nbsp; Y <span data-readout-y>0.00</span>
     </p>
@@ -112,9 +112,13 @@ const links = [
   }
 
   nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: var(--text);
     padding: 0.4rem 0;
     border-bottom: 1px solid transparent;
+    touch-action: manipulation;
     transition: color 0.2s ease, border-color 0.2s ease;
   }
   nav a:hover,

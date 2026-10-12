@@ -2,7 +2,7 @@
   {
     "title": "Cagibi",
     "description": "Premier projet de développement web destiné à être présenté pour mon dossier de candidature à la web@cadémie by Epitech.",
-    "url": "https://tablooooo.github.io/site-pour-int-grer-la-web-cad-mie/",
+    "url": "https://github.com/Tablooooo/site-pour-int-grer-la-web-cad-mie",
     "demo": "https://tablooooo.github.io/site-pour-int-grer-la-web-cad-mie/",
     "image": "/images/mockup-cagibi.webp",
     "technologies": ["HTML", "CSS", "JS"],
@@ -13,7 +13,7 @@
     "description": "Mon portfolio interactif : une galaxie de particules sert de navigation. Construit avec Astro et three.js.",
     "url": "https://github.com/Tablooooo/portfolio",
     "demo": "https://tablooooo.github.io/portfolio/",
-    "image": "",
+    "image": "/images/mockup-portfolio.webp",
     "technologies": ["Astro", "TypeScript", "three.js"],
     "featured": false
   }

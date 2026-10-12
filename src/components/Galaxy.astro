@@ -69,7 +69,9 @@ const nodes = [
     display: flex;
     align-items: center;
     gap: 0.9rem;
+    min-height: 48px;
     padding: 0.9rem;
+    touch-action: manipulation;
     opacity: 0;
     animation: galaxy-in 1.2s ease 2.2s forwards;
     will-change: transform;
@@ -407,13 +409,76 @@ const nodes = [
       uniforms.uStrength.value += ((inside ? 1 : 0) - uniforms.uStrength.value) * 0.05;
 
       // Projection des astres vers l'écran.
-      const pts: string[] = [];
-      for (const n of nodePoints) {
+      const projectedNodes = nodePoints.map((n) => {
         tmp.copy(n.local).applyMatrix4(group.matrixWorld).project(camera);
-        const x = (tmp.x * 0.5 + 0.5) * w;
-        const y = (-tmp.y * 0.5 + 0.5) * h;
-        n.el.classList.toggle('flip', x > w * 0.62);
-        n.el.style.transform = `translate(${x}px, ${y}px) translate(-0.9rem, -50%)`;
+        return {
+          ...n,
+          x: (tmp.x * 0.5 + 0.5) * w,
+          y: (-tmp.y * 0.5 + 0.5) * h,
+        };
+      });
+      const centroid = projectedNodes.reduce(
+        (sum, node) => ({ x: sum.x + node.x / projectedNodes.length, y: sum.y + node.y / projectedNodes.length }),
+        { x: 0, y: 0 }
+      );
+      const mobile = w <= 800;
+      const scale = mobile ? 0.38 + 0.62 * THREE.MathUtils.clamp((w - 320) / 480, 0, 1) : 1;
+      const activePanel = document.querySelector<HTMLElement>('.panel.is-open');
+      const menuBottom = document.querySelector<HTMLElement>('.top')?.getBoundingClientRect().bottom ?? 0;
+      const idleContentTop = document.querySelector<HTMLElement>('.identity')?.getBoundingClientRect().top ?? h * 0.75;
+      const panelTop = activePanel?.getBoundingClientRect().top ?? idleContentTop;
+      const center = mobile
+        ? {
+            x: THREE.MathUtils.lerp(centroid.x, activePanel && h <= 500 ? activePanel.getBoundingClientRect().left / 2 : w / 2, 1 - scale),
+            y: THREE.MathUtils.lerp(centroid.y, (menuBottom + panelTop) / 2, 1 - scale),
+          }
+        : centroid;
+      const nodePositions = projectedNodes.map((n) => ({
+        ...n,
+        x: center.x + (n.x - centroid.x) * scale,
+        y: center.y + (n.y - centroid.y) * scale,
+      }));
+
+      if (mobile) {
+        const minY = menuBottom + 30;
+        const maxY = (h <= 500 ? h - 30 : panelTop - 30);
+        const ordered = [...nodePositions].sort((a, b) => a.y - b.y);
+        for (let i = 1; i < ordered.length; i++) {
+          ordered[i].y = Math.max(ordered[i].y, ordered[i - 1].y + 60);
+        }
+        const overflow = ordered[ordered.length - 1].y - maxY;
+        if (overflow > 0) ordered.forEach((node) => (node.y -= overflow));
+        const underflow = minY - ordered[0].y;
+        if (underflow > 0) ordered.forEach((node) => (node.y += underflow));
+      }
+
+      const pts: string[] = [];
+
+      for (const n of nodePositions) {
+        const x = n.x;
+        const y = n.y;
+
+        if (mobile) {
+          n.el.classList.toggle('flip', x > w * 0.5);
+          const dot = n.el.querySelector<HTMLElement>('.node-dot');
+          const dotCenter = (dot?.offsetLeft ?? 0) + (dot?.offsetWidth ?? 0) / 2;
+          const margin = 8;
+          const minX = margin + dotCenter;
+          const maxX = w - margin - (n.el.offsetWidth - dotCenter);
+          const safeX = Math.min(Math.max(x, minX), maxX);
+          n.el.style.left = `${safeX - dotCenter}px`;
+          n.el.style.top = `${y}px`;
+          n.el.style.transform = 'translateY(-50%)';
+        } else {
+          const flip = x > w * 0.62;
+          n.el.classList.toggle('flip', flip);
+          const anchorX = flip
+            ? x - n.el.offsetWidth + 0.9 * parseFloat(getComputedStyle(n.el).fontSize)
+            : x - 0.9 * parseFloat(getComputedStyle(n.el).fontSize);
+          n.el.style.left = '0px';
+          n.el.style.top = '0px';
+          n.el.style.transform = `translate(${anchorX}px, ${y}px) translateY(-50%)`;
+        }
         pts.push(`${x},${y}`);
       }
       polyline?.setAttribute('points', pts.join(' '));
