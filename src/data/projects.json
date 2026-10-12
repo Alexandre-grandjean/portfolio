@@ -2,9 +2,9 @@
   {
     "title": "Cagibi",
     "description": "Premier projet de développement web destiné à être présenté pour mon dossier de candidature à la web@cadémie by Epitech.",
-    "url": "",
-    "demo": "",
-    "image": "",
+    "url": "https://tablooooo.github.io/site-pour-int-grer-la-web-cad-mie/",
+    "demo": "https://tablooooo.github.io/site-pour-int-grer-la-web-cad-mie/",
+    "image": "/images/mockup-cagibi.webp",
     "technologies": ["HTML", "CSS", "JS"],
     "featured": true
   },
