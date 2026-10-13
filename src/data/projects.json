@@ -16,5 +16,14 @@
     "image": "/images/mockup-portfolio.webp",
     "technologies": ["Astro", "TypeScript", "three.js"],
     "featured": false
+  },
+  {
+    "title": "Apprendre le dev",
+    "description": "MVP d'un petit site d'apprentissage dans le domaine de l'informatique et du développement.",
+    "url": "https://github.com/Tablooooo/apprendre-le-dev",
+    "demo": "https://tablooooo.github.io/apprendre-le-dev/",
+    "image": "/images/mockup-apprendre-le-dev.webp",
+    "technologies": ["Next.js", "TypeScript", "React", "CSS"],
+    "featured": false
   }
 ]
