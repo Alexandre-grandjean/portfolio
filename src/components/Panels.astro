@@ -6,6 +6,65 @@ import parcours from '../data/parcours.json';
 
 const orderedProjects = [...projects].sort((a, b) => Number(b.featured) - Number(a.featured));
 
+// --- Projets : utilitaires d'affichage -------------------------------------
+// Aucun de ces champs n'est obligatoire : si la donnée manque, le bloc disparaît.
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+// Familles de technos : sert à colorer les étiquettes sans toucher au JSON.
+const TECH_KIND: Record<string, string> = {
+  HTML: 'lang',
+  CSS: 'lang',
+  SCSS: 'lang',
+  JS: 'lang',
+  JavaScript: 'lang',
+  TypeScript: 'lang',
+  PHP: 'lang',
+  Java: 'lang',
+  Rust: 'lang',
+  Python: 'lang',
+  C: 'lang',
+  SQL: 'lang',
+  MDX: 'lang',
+  'three.js': 'lib',
+  React: 'lib',
+  'Next.js': 'lib',
+  Astro: 'lib',
+  Symfony: 'lib',
+  'Spring Boot': 'lib',
+  Twig: 'lib',
+  MySQL: 'db',
+  PostgreSQL: 'db',
+  SQLite: 'db',
+  Docker: 'tool',
+  Git: 'tool',
+  Postman: 'tool',
+  Vite: 'tool',
+  Linux: 'tool',
+};
+const techKind = (name: string) => TECH_KIND[name] ?? 'tool';
+
+const MONTHS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+const formatMonth = (value?: string) => {
+  if (!value) return '';
+  const [year, month] = value.split('-');
+  return month ? `${MONTHS[Number(month) - 1]} ${year}` : year;
+};
+const formatPeriod = (period?: { start?: string; end?: string }) => {
+  if (!period) return '';
+  const start = formatMonth(period.start);
+  const end = period.end ? formatMonth(period.end) : 'en cours';
+  return start ? `${start} → ${end}` : end;
+};
+
 const contacts: { label: string; value: string; href: string; external: boolean }[] = [];
 if (site.email) {
   contacts.push({ label: 'Email', value: site.email, href: `mailto:${site.email}`, external: false });
@@ -68,31 +127,128 @@ if (site.linkedin) {
   <div class="panel-body">
     <h2 class="panel-title" id="projets-title" data-r>Ce que je construis</h2>
 
-    <ul class="orbits">
+    <ul class="orbits" data-projects-list>
       {
-        orderedProjects.map((project, i) => (
-          <li data-r style={`--i: ${i + 1}`}>
-            <div class="orbit" aria-hidden="true">
-              <svg viewBox="0 0 64 64">
-                <ellipse class="ring" cx="32" cy="32" rx="26" ry="10" />
-                <circle class="core" cx="32" cy="32" r="3.5" />
-              </svg>
-              <span class="sat" />
-            </div>
-            <div class="orbit-body">
-              {project.featured && <p class="label">En avant</p>}
+        (orderedProjects as any[]).map((project, i) => {
+          const meta = [
+            project.period ? { k: 'Période', v: formatPeriod(project.period) } : null,
+            project.category ? { k: 'Catégorie', v: project.category } : null,
+            project.role ? { k: 'Rôle', v: project.role } : null,
+            project.status ? { k: 'Statut', v: project.status } : null,
+          ].filter(Boolean) as { k: string; v: string }[];
+
+          return (
+            <li data-r style={`--i: ${i + 1}`}>
+              <div class="orbit" aria-hidden="true">
+                <svg viewBox="0 0 64 64">
+                  <ellipse class="ring" cx="32" cy="32" rx="26" ry="10" />
+                  <circle class="core" cx="32" cy="32" r="3.5" />
+                </svg>
+                <span class="sat" />
+              </div>
+              <div class="orbit-body">
+                {project.featured && <p class="label">En avant</p>}
+                <h3>{project.title}</h3>
+
+                {meta.length > 0 && (
+                  <dl class="meta">
+                    {meta.map((m) => (
+                      <>
+                        <dt>{m.k}</dt>
+                        <dd>{m.v}</dd>
+                      </>
+                    ))}
+                  </dl>
+                )}
+
+                {project.image && (
+                  <img
+                    src={`${import.meta.env.BASE_URL}${project.image.replace(/^\/+/, '')}`}
+                    alt={`Aperçu du projet ${project.title}`}
+                    loading="lazy"
+                  />
+                )}
+                <p class="desc">{project.description}</p>
+                <ul class="tags">
+                  {project.technologies.map((tech: string) => (
+                    <li class={`tag tag--${techKind(tech)}`}>{tech}</li>
+                  ))}
+                </ul>
+                <div class="actions">
+                  {project.url && (
+                    <a href={project.url} target="_blank" rel="noopener noreferrer">
+                      Code source <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                  {project.demo && (
+                    <a href={project.demo} target="_blank" rel="noopener noreferrer">
+                      Voir la démo <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                  {project.case && (
+                    <button class="case-open" type="button" data-case={slug(project.title)}>
+                      Lire l’étude de cas <span aria-hidden="true">↳</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    {
+      (orderedProjects as any[])
+        .filter((project) => project.case)
+        .map((project) => {
+          const c = project.case;
+          const blocks = [
+            { k: 'Contexte', v: c.context },
+            { k: 'Démarche', v: c.process },
+            { k: 'Ce dont je suis fier', v: c.pride },
+            { k: 'Difficultés', v: c.difficulty },
+            { k: 'À refaire', v: c.again },
+            { k: 'Ce que j’ai appris', v: c.learned },
+          ].filter((b) => b.v) as { k: string; v: string }[];
+
+          return (
+            <article class="case" data-case-panel={slug(project.title)} hidden>
+              <button class="case-back" type="button" data-case-back>
+                <span aria-hidden="true">←</span> Retour aux projets
+              </button>
+
+              {project.category && <p class="label">{project.category}</p>}
               <h3>{project.title}</h3>
-              {project.image && (
-                <img
-                  src={`${import.meta.env.BASE_URL}${project.image.replace(/^\/+/, '')}`}
-                  alt={`Aperçu du projet ${project.title}`}
-                  loading="lazy"
-                />
-              )}
-              <p class="desc">{project.description}</p>
-              <ul class="tags">
-                {project.technologies.map((tech) => <li>{tech}</li>)}
-              </ul>
+
+              <dl class="meta">
+                {project.period && (
+                  <>
+                    <dt>Période</dt>
+                    <dd>{formatPeriod(project.period)}</dd>
+                  </>
+                )}
+                {project.role && (
+                  <>
+                    <dt>Rôle</dt>
+                    <dd>{project.role}</dd>
+                  </>
+                )}
+                {project.status && (
+                  <>
+                    <dt>Statut</dt>
+                    <dd>{project.status}</dd>
+                  </>
+                )}
+              </dl>
+
+              {blocks.map((b) => (
+                <section class="case-block">
+                  <h4>{b.k}</h4>
+                  <p>{b.v}</p>
+                </section>
+              ))}
+
               <div class="actions">
                 {project.url && (
                   <a href={project.url} target="_blank" rel="noopener noreferrer">
@@ -105,11 +261,10 @@ if (site.linkedin) {
                   </a>
                 )}
               </div>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
+            </article>
+          );
+        })
+    }
   </div>
 </section>
 
@@ -505,6 +660,118 @@ if (site.linkedin) {
     border-color: var(--accent);
   }
 
+  /* ---------- Projets : métadonnées, étiquettes, étude de cas ---------- */
+  .meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.3rem 1rem;
+    margin: 0.7rem 0 1rem;
+  }
+  .meta dt {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 0.18rem;
+  }
+  .meta dd {
+    font-size: 0.84rem;
+    color: var(--text);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+  }
+  .tag::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .tag--lang::before {
+    background: var(--text);
+  }
+  .tag--lib::before {
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(159, 196, 240, 0.85);
+  }
+  .tag--db::before {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .tag--tool::before {
+    background: var(--muted);
+  }
+
+  .actions button {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--accent);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .actions button:hover,
+  .actions button:focus-visible {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .case[hidden] {
+    display: none;
+  }
+  .case-back {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: none;
+    border: 0;
+    padding: 0.35rem 0;
+    margin-bottom: 1.6rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .case-back:hover,
+  .case-back:focus-visible {
+    color: var(--accent);
+  }
+  .case h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.9rem;
+    line-height: 1.1;
+    margin: 0.2rem 0 0.9rem;
+  }
+  .case-block {
+    margin-top: 1.5rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+  .case-block h4 {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.45rem;
+  }
+  .case-block p {
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
   /* ---------- Contact ---------- */
   .links {
     list-style: none;
@@ -634,6 +901,21 @@ if (site.linkedin) {
   let current: string | null = null;
   let lastTrigger: HTMLElement | null = null;
 
+  // --- Projets : bascule liste ⇄ étude de cas ---
+  const projectsList = document.querySelector<HTMLElement>('[data-projects-list]');
+  const cases = Array.from(document.querySelectorAll<HTMLElement>('[data-case-panel]'));
+
+  function showCase(id: string | null) {
+    if (!projectsList) return;
+    const target = id ? cases.find((c) => c.dataset.casePanel === id) ?? null : null;
+    projectsList.hidden = target !== null;
+    cases.forEach((c) => {
+      c.hidden = c !== target;
+    });
+    const body = document.querySelector<HTMLElement>('[data-panel="projets"] .panel-body');
+    if (body) body.scrollTop = 0;
+  }
+
   function apply(id: string | null, focusPanel = false) {
     if (id === current) return;
     current = id;
@@ -662,6 +944,8 @@ if (site.linkedin) {
       }
     });
 
+    if (id !== 'projets') showCase(null);
+
     window.dispatchEvent(new CustomEvent('viewchange', { detail: id }));
   }
 
@@ -679,8 +963,13 @@ if (site.linkedin) {
   }
 
   function sync() {
-    const id = location.hash.slice(1);
-    apply(ids.includes(id) ? id : null);
+    const raw = location.hash.slice(1);
+    if (raw.startsWith('projets/')) {
+      apply('projets');
+      showCase(raw.slice('projets/'.length));
+      return;
+    }
+    apply(ids.includes(raw) ? raw : null);
   }
 
   document.addEventListener('click', (event) => {
@@ -694,6 +983,15 @@ if (site.linkedin) {
     }
     if (target.closest('[data-close]')) {
       close(event.detail === 0);
+      return;
+    }
+    const caseButton = target.closest<HTMLElement>('[data-case]');
+    if (caseButton?.dataset.case) {
+      showCase(caseButton.dataset.case);
+      return;
+    }
+    if (target.closest('[data-case-back]')) {
+      showCase(null);
       return;
     }
     if (current && target.closest('#galaxy')) close(false);
