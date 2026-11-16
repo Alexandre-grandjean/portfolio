@@ -1,7 +1,7 @@
 # Portfolio
 
 > Mon portfolio, construit comme une carte du ciel interactive : la galaxie sert de
-> navigation, chaque astre ouvre un panneau (Parcours, Projets, Contact).
+> navigation, chaque astre ouvre un panneau (Parcours, Projets, CV).
 
 **En ligne :** https://alexandre-grandjean.github.io/portfolio/
 
@@ -10,7 +10,9 @@
 Un site une page, en plein écran, où l'on navigue en cliquant des astres plutôt qu'en
 faisant défiler. La scène est une galaxie de particules rendue en three.js ; la caméra
 vole vers l'astre choisi, le panneau s'ouvre à côté. Trois sections : parcours,
-projets, contact.
+projets, CV. Les liens GitHub, LinkedIn et mail sont accessibles directement en haut
+à gauche, avec une icône et un libellé, y compris sur mobile. L'ancien lien
+`#contact` reste compatible et ouvre le panneau `#cv`.
 
 ## Stack
 

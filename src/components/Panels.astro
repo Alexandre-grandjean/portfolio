@@ -1,5 +1,5 @@
 ---
-// Panneaux HUD (Parcours / Projets / Contact) + contrôleur de navigation.
+// Panneaux HUD (Parcours / Projets / CV) + contrôleur de navigation.
 import site from '../data/site.json';
 import projects from '../data/projects.json';
 import parcours from '../data/parcours.json';
@@ -65,26 +65,6 @@ const formatPeriod = (period?: { start?: string; end?: string }) => {
   return start ? `${start} → ${end}` : end;
 };
 
-const contacts: { label: string; value: string; href: string; external: boolean }[] = [];
-if (site.email) {
-  contacts.push({ label: 'Email', value: site.email, href: `mailto:${site.email}`, external: false });
-}
-if (site.github) {
-  contacts.push({
-    label: 'GitHub',
-    value: site.github.replace(/^https?:\/\//, ''),
-    href: site.github,
-    external: true,
-  });
-}
-if (site.linkedin) {
-  contacts.push({
-    label: 'LinkedIn',
-    value: site.linkedin.replace(/^https?:\/\//, ''),
-    href: site.linkedin,
-    external: true,
-  });
-}
 ---
 
 <section class="panel" id="parcours" data-panel="parcours" aria-labelledby="parcours-title" tabindex="-1" inert>
@@ -268,37 +248,19 @@ if (site.linkedin) {
   </div>
 </section>
 
-<section class="panel" id="contact" data-panel="contact" aria-labelledby="contact-title" tabindex="-1" inert>
+<section class="panel" id="cv" data-panel="cv" aria-labelledby="cv-title" tabindex="-1" inert>
   <header class="panel-head">
-    <p class="panel-index"><span>03</span>Contact</p>
+    <p class="panel-index"><span>03</span>CV</p>
     <button class="panel-close" type="button" data-close aria-label="Fermer le panneau">
       Fermer <kbd>Esc</kbd>
     </button>
   </header>
   <div class="panel-body">
-    <h2 class="panel-title big" id="contact-title" data-r>Construisons quelque chose.</h2>
+    <h2 class="panel-title" id="cv-title" data-r>Mon CV</h2>
+    <p class="lede" data-r style="--i: 1">Mon parcours, mes compétences et mes projets, réunis sur une page.</p>
 
-    <ul class="links">
-      {
-        contacts.map((c, i) => (
-          <li data-r style={`--i: ${i + 1}`}>
-            <a
-              class="row"
-              href={c.href}
-              target={c.external ? '_blank' : undefined}
-              rel={c.external ? 'noopener noreferrer' : undefined}
-            >
-              <span class="k">{c.label}</span>
-              <span class="v">{c.value}</span>
-              <span class="arrow" aria-hidden="true">↗</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-
-    <div class="cv" data-r style="--i: 4" aria-labelledby="cv-title">
-      <p class="label" id="cv-title">Curriculum vitae</p>
+    <div class="cv" data-r style="--i: 2">
+      <p class="label">Curriculum vitae · PDF</p>
       <div class="cv-actions">
         <a href={`${import.meta.env.BASE_URL}documents/cv-light.pdf`} target="_blank" rel="noopener noreferrer">
           Consulter le CV <span aria-hidden="true">↗</span>
@@ -430,10 +392,6 @@ if (site.linkedin) {
     font-size: clamp(2rem, 3.4vw, 2.8rem);
     line-height: 1.05;
     margin-bottom: 1.8rem;
-  }
-  .panel-title.big {
-    font-size: clamp(2.4rem, 4.4vw, 3.6rem);
-    margin-bottom: 2.4rem;
   }
 
   .label {
@@ -768,11 +726,7 @@ if (site.linkedin) {
     line-height: 1.6;
   }
 
-  /* ---------- Contact ---------- */
-  .links {
-    list-style: none;
-    border-bottom: 1px solid var(--line);
-  }
+  /* ---------- CV ---------- */
   .cv {
     margin-top: 2rem;
   }
@@ -797,46 +751,6 @@ if (site.linkedin) {
     color: var(--accent);
     border-color: var(--accent);
   }
-  .row {
-    display: grid;
-    grid-template-columns: 5.5rem 1fr auto;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 1.15rem 0.6rem;
-    margin-inline: -0.6rem;
-    border-top: 1px solid var(--line);
-    transition: background 0.25s ease;
-  }
-  .row .k {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .row .v {
-    overflow-wrap: anywhere;
-    transition: color 0.2s ease;
-  }
-  .row .arrow {
-    font-family: var(--font-mono);
-    color: var(--muted);
-    transition: transform 0.25s ease, color 0.2s ease;
-  }
-  .row:hover,
-  .row:focus-visible {
-    background: rgba(159, 196, 240, 0.05);
-  }
-  .row:hover .v,
-  .row:focus-visible .v,
-  .row:hover .arrow,
-  .row:focus-visible .arrow {
-    color: var(--accent);
-  }
-  .row:hover .arrow,
-  .row:focus-visible .arrow {
-    transform: translate(3px, -3px);
-  }
 
   /* ---------- Mobile : panneau en bas ---------- */
   @media (max-width: 800px) {
@@ -850,10 +764,6 @@ if (site.linkedin) {
     }
     .panel-body {
       padding: 1.4rem 1.1rem 2rem;
-    }
-    .row {
-      grid-template-columns: 4.5rem 1fr auto;
-      min-height: 48px;
     }
     .panel-close {
       min-height: 44px;
@@ -947,6 +857,12 @@ if (site.linkedin) {
 
   function sync() {
     const raw = location.hash.slice(1);
+    // Les anciens liens Contact restent valides après le changement de section.
+    if (raw === 'contact') {
+      history.replaceState(null, '', `${location.pathname}${location.search}#cv`);
+      apply('cv');
+      return;
+    }
     if (raw.startsWith('projets/')) {
       apply('projets');
       showCase(raw.slice('projets/'.length));

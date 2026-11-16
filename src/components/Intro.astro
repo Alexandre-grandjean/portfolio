@@ -9,7 +9,7 @@
     try {
       skip =
         sessionStorage.getItem('intro-seen') === '1' ||
-        /^#(parcours|projets|contact)$/.test(location.hash) ||
+        /^#(parcours|projets|cv|contact)$/.test(location.hash) ||
         matchMedia('(prefers-reduced-motion: reduce)').matches;
     } catch (e) {}
     if (!skip) root.classList.add('intro-active');
