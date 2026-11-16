@@ -299,7 +299,6 @@ if (site.linkedin) {
 
     <div class="cv" data-r style="--i: 4" aria-labelledby="cv-title">
       <p class="label" id="cv-title">Curriculum vitae</p>
-      <p class="cv-note">Version claire, recommandée pour l’impression et la lecture.</p>
       <div class="cv-actions">
         <a href={`${import.meta.env.BASE_URL}documents/cv-light.pdf`} target="_blank" rel="noopener noreferrer">
           Consulter le CV <span aria-hidden="true">↗</span>
@@ -308,9 +307,6 @@ if (site.linkedin) {
           Télécharger le CV <span aria-hidden="true">↓</span>
         </a>
       </div>
-      <a class="cv-dark" href={`${import.meta.env.BASE_URL}documents/cv-dark.pdf`} target="_blank" rel="noopener noreferrer">
-        Consulter la version sombre <span aria-hidden="true">↗</span>
-      </a>
     </div>
   </div>
 </section>
@@ -780,18 +776,12 @@ if (site.linkedin) {
   .cv {
     margin-top: 2rem;
   }
-  .cv-note {
-    color: var(--muted);
-    font-size: 0.88rem;
-    margin-bottom: 1rem;
-  }
   .cv-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.7rem 1.2rem;
   }
-  .cv-actions a,
-  .cv-dark {
+  .cv-actions a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
@@ -803,16 +793,9 @@ if (site.linkedin) {
     transition: color 0.2s ease, border-color 0.2s ease;
   }
   .cv-actions a:hover,
-  .cv-actions a:focus-visible,
-  .cv-dark:hover,
-  .cv-dark:focus-visible {
+  .cv-actions a:focus-visible {
     color: var(--accent);
     border-color: var(--accent);
-  }
-  .cv-dark {
-    color: var(--muted);
-    margin-top: 0.6rem;
-    font-size: 0.66rem;
   }
   .row {
     display: grid;

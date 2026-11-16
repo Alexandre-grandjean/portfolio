@@ -35,17 +35,19 @@ Tout est dans `src/data/` — aucune ligne de code à toucher :
 
 ## CV public
 
-Les boutons de contact utilisent `public/documents/cv-light.pdf` et `cv-dark.pdf`.
-Les deux versions sont générées depuis `scripts/cv.html`, sans numéro de téléphone.
-Pour les régénérer sur Windows avec Python 3 et Microsoft Edge :
+Les boutons de contact utilisent uniquement `public/documents/cv-light.pdf`.
+Il s'agit du CV clair fourni par Alexandre, avec le logo Epitech en haut à droite.
+Sa mise en page est conservée ; la ligne du téléphone est supprimée du PDF.
+Pour préparer une nouvelle version avec Python 3 et PyMuPDF :
 
 ```bash
-python scripts/generate_cv.py
+python scripts/prepare_cv.py "chemin/vers/le-cv-original.pdf"
 ```
 
-Le générateur ne charge aucune ressource distante. Vérifier que chaque PDF reste sur
-une page et que ses liens fonctionnent avant publication. Ne pas ajouter de téléphone
-dans cette version publique.
+Le traitement est local et ne charge aucune ressource distante. Vérifier que le PDF
+reste sur une page, que le logo est intact et que ses liens fonctionnent avant publication.
+Ne jamais ajouter le PDF original avec téléphone au dépôt. Pas de version sombre et
+pas de recréation du CV dans une autre mise en page.
 
 ## Structure
 
