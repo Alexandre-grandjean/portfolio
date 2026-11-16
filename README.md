@@ -33,6 +33,20 @@ Astro 7 · three.js · TypeScript · CSS. Polices servies en local, aucun appel 
 Tout est dans `src/data/` — aucune ligne de code à toucher :
 `site.json` (nom, bio, liens), `projects.json`, `parcours.json`.
 
+## CV public
+
+Les boutons de contact utilisent `public/documents/cv-light.pdf` et `cv-dark.pdf`.
+Les deux versions sont générées depuis `scripts/cv.html`, sans numéro de téléphone.
+Pour les régénérer sur Windows avec Python 3 et Microsoft Edge :
+
+```bash
+python scripts/generate_cv.py
+```
+
+Le générateur ne charge aucune ressource distante. Vérifier que chaque PDF reste sur
+une page et que ses liens fonctionnent avant publication. Ne pas ajouter de téléphone
+dans cette version publique.
+
 ## Structure
 
 - `src/components/Galaxy.astro` : scène three.js + astres de navigation
